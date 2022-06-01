@@ -1,25 +1,36 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace M13.InterviewProject
 {
     public class Startup
     {
-        public static void ConfigureServices(IServiceCollection services)
+        public static void ConfigureServices(
+            IServiceCollection services
+        )
         {
-            services.AddMvc(o => { o.EnableEndpointRouting = false; });
+            services.AddMvc(o =>
+            {
+                o.EnableEndpointRouting = false;
+            });
             services.AddControllers();
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "WebApi", Version = "v1"}); });
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "WebApi", Version = "v1"
+                });
+            });
         }
 
-        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env
+        )
         {
-            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
