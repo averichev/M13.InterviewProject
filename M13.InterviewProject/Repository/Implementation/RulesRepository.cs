@@ -32,7 +32,11 @@ namespace M13.InterviewProject.Repository.Implementation
         {
             lock (_rules)
             {
-                return _rules[site];
+                if (_rules.ContainsKey(site))
+                {
+                    return _rules[site];
+                }
+                throw new KeyNotFoundException($"Не найдено правило для сайта {site}");
             }
         }
     }
