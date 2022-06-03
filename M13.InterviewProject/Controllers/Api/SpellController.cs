@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 
 namespace M13.InterviewProject.Controllers.Api
@@ -54,24 +52,9 @@ namespace M13.InterviewProject.Controllers.Api
         /// Проверить текст страницы по заданному адресу и получить количество слов с ошибками
         /// </summary>
         [HttpGet("errorscount")]
-        public int Count(string page)
+        public async Task<int> Count(string page)
         {
-            var site = new Uri("http://" + page).Host;
-
-            var text = _clientFactory.CreateClient().GetAsync("http://" + page)
-                .ContinueWith(t =>
-                {
-                    var document = new HtmlDocument();
-                    document.LoadHtml(t.Result.Content.ReadAsStringAsync().Result);
-                    var xpath = _rulesRepository.GetRuleBySite(site);
-                    string innerText = "";
-                    foreach (var node in document.DocumentNode.SelectNodes(xpath))
-                    {
-                        innerText = innerText + "\r\n" + node.InnerText;
-                    }
-
-                    return innerText;
-                }).Result;
+            var text = await _htmlReader.ReadPageAsync(page);
 
             return new SpellChecker().GetErrors(text).Result.Count();
         }
