@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace M13.InterviewProject.Controllers.Api
 {
+    using System.Threading.Tasks;
     using Repository;
     using Services;
     using Services.Implementation;
@@ -14,38 +15,27 @@ namespace M13.InterviewProject.Controllers.Api
     public class SpellController
     {
         private readonly IRulesRepository _rulesRepository;
+        private readonly IHtmlReader _htmlReader;
         private readonly IHttpClientFactory _clientFactory;
 
-        public SpellController(IHttpClientFactory clientFactory, IRulesRepository rulesRepository)
+        public SpellController(
+            IHttpClientFactory clientFactory,
+            IRulesRepository rulesRepository,
+            IHtmlReader htmlReader
+        )
         {
             _clientFactory = clientFactory;
             _rulesRepository = rulesRepository;
+            _htmlReader = htmlReader;
         }
 
         /// <summary>
         /// Проверить текст страницы по заданному адресу и получить список слов с ошибками
         /// </summary>
         [HttpGet("errors")]
-        public IEnumerable<string> Errors(
-            string page
-        )
+        public async Task<IEnumerable<string>> Errors(string page)
         {
-            var site = new Uri("http://" + page).Host;
-
-            var text = _clientFactory.CreateClient().GetAsync("http://" + page)
-                .ContinueWith(t =>
-                {
-                    var document = new HtmlDocument();
-                    document.LoadHtml(t.Result.Content.ReadAsStringAsync().Result);
-                    var xpath = _rulesRepository.GetRuleBySite(site);
-                    string innerText = "";
-                    foreach (var node in document.DocumentNode.SelectNodes(xpath))
-                    {
-                        innerText = innerText + "\r\n" + node.InnerText;
-                    }
-
-                    return innerText;
-                }).Result;
+            var text = await _htmlReader.ReadPageAsync(page);
 
             var textErrors = new List<string>(100);
 
@@ -64,9 +54,7 @@ namespace M13.InterviewProject.Controllers.Api
         /// Проверить текст страницы по заданному адресу и получить количество слов с ошибками
         /// </summary>
         [HttpGet("errorscount")]
-        public int Count(
-            string page
-        )
+        public int Count(string page)
         {
             var site = new Uri("http://" + page).Host;
 

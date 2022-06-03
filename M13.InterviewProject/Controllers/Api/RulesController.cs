@@ -1,9 +1,8 @@
-using System;
-using Microsoft.AspNetCore.Mvc;
-
-namespace M13.InterviewProject.Controllers
+namespace M13.InterviewProject.Controllers.Api
 {
+    using System;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
     using Models.Implementation;
     using Repository;
     using Services;
@@ -56,7 +55,7 @@ namespace M13.InterviewProject.Controllers
         {
             try
             {
-                var text = await _htmlReader.ReadPage(page);
+                var text = await _htmlReader.ReadPageAsync(page);
                 return Ok(text);
             }
             catch (Exception e)

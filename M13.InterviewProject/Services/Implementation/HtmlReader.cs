@@ -17,7 +17,7 @@ namespace M13.InterviewProject.Services.Implementation
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string> ReadPage(string page)
+        public async Task<string> ReadPageAsync(string page)
         {
             try
             {

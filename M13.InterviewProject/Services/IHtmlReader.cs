@@ -4,6 +4,6 @@ namespace M13.InterviewProject.Services
 
     public interface IHtmlReader
     {
-        Task<string> ReadPage(string page);
+        Task<string> ReadPageAsync(string page);
     }
 }
