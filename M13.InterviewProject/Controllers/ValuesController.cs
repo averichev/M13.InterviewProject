@@ -61,24 +61,40 @@ namespace M13.InterviewProject.Controllers
         }
 
         [HttpGet("test")]
-        public async Task<IActionResult> TestRules(string page, string rule = null)
+        public async Task<IActionResult> TestRules(string page)
         {
-            //var site = new Uri("http://" + page).Host;
+            try
+            {
+                var content = await GetPageContent(page);
+                var selector = _rulesRepository.GetRuleBySite(page);
+                var text = ReadHtml(content, selector);
+                return Ok(text);
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity($"{e.Message}");
+            }
+        }
+
+        private async Task<string> GetPageContent(string page)
+        {
             var response = await _clientFactory.CreateClient().GetAsync("http://" + page);
             var content = await response.Content.ReadAsStringAsync();
             _logger.LogDebug(content);
-            var selector = _rulesRepository.GetRuleBySite(page);
-            var text = ReadHtml(content, selector);
-            return Ok(text);
+            return content;
         }
 
         private static string ReadHtml(string html, string rule)
         {
             var document = new HtmlDocument();
             document.LoadHtml(html);
-            var nodes = document.DocumentNode.SelectNodes(rule);
-            Func<string, HtmlNode, string> func = GetString;
-            var result = nodes.Aggregate("", func);
+            var node = document.DocumentNode;
+            var nodes = node.SelectNodes(rule);
+            if (nodes == null)
+            {
+                throw new RankException($"Не найдены узлы {rule} в теле страницы");
+            }
+            var result = nodes.Aggregate("", GetString);
             return result;
         }
 
