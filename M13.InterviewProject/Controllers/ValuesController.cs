@@ -1,12 +1,9 @@
 using System;
-using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 
 namespace M13.InterviewProject.Controllers
 {
-    using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Extensions.Logging;
     using Models.Implementation;
     using Repository;
     using Services;
@@ -22,19 +19,13 @@ namespace M13.InterviewProject.Controllers
     [Route("api/rules")]
     public class ValuesController : Controller
     {
-        private readonly ILogger<ValuesController> _logger;
-        private readonly IHttpClientFactory _clientFactory;
         private readonly IRulesRepository _rulesRepository;
+        private readonly IHtmlReader _htmlReader;
 
-        public ValuesController(
-            IHttpClientFactory clientFactory,
-            IRulesRepository rulesRepository,
-            ILogger<ValuesController> logger
-        )
+        public ValuesController(IRulesRepository rulesRepository, IHtmlReader htmlReader)
         {
-            _clientFactory = clientFactory;
             _rulesRepository = rulesRepository;
-            _logger = logger;
+            _htmlReader = htmlReader;
         }
 
         [HttpGet("add")]
@@ -65,9 +56,7 @@ namespace M13.InterviewProject.Controllers
         {
             try
             {
-                var content = await GetPageContent(page);
-                var selector = _rulesRepository.GetRuleBySite(page);
-                var text = ReadHtml(content, selector);
+                var text = await _htmlReader.ReadPage(page);
                 return Ok(text);
             }
             catch (Exception e)
@@ -75,30 +64,6 @@ namespace M13.InterviewProject.Controllers
                 return UnprocessableEntity($"{e.Message}");
             }
         }
-
-        private async Task<string> GetPageContent(string page)
-        {
-            var response = await _clientFactory.CreateClient().GetAsync("http://" + page);
-            var content = await response.Content.ReadAsStringAsync();
-            _logger.LogDebug(content);
-            return content;
-        }
-
-        private static string ReadHtml(string html, string rule)
-        {
-            var document = new HtmlDocument();
-            document.LoadHtml(html);
-            var node = document.DocumentNode;
-            var nodes = node.SelectNodes(rule);
-            if (nodes == null)
-            {
-                throw new RankException($"Не найдены узлы {rule} в теле страницы");
-            }
-            var result = nodes.Aggregate("", GetString);
-            return result;
-        }
-
-        private static string GetString(string current, HtmlNode node) => current + "\r\n" + node.InnerText;
 
         [HttpGet("delete")]
         public IActionResult Delete(string site)

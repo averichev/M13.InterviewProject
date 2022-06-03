@@ -29,6 +29,7 @@ namespace M13.InterviewProject
 
         private static void AddApplicationServices(IServiceCollection collection)
         {
+            collection.AddTransient<IHtmlReader, HtmlReader>();
             collection.AddScoped<IHttpClientFactory, HttpClientFactory>();
             collection.AddSingleton<IRulesRepository, RulesRepository>();
         }

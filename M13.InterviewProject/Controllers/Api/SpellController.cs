@@ -6,22 +6,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace M13.InterviewProject.Controllers.Api
 {
+    using Repository;
     using Services;
     using Services.Implementation;
 
     [Route("api/spell")]
     public class SpellController
     {
-        private static readonly Dictionary<string, string> Rules = new();
+        private readonly IRulesRepository _rulesRepository;
         private readonly IHttpClientFactory _clientFactory;
 
-        public SpellController(IHttpClientFactory clientFactory) => _clientFactory = clientFactory;
+        public SpellController(IHttpClientFactory clientFactory, IRulesRepository rulesRepository)
+        {
+            _clientFactory = clientFactory;
+            _rulesRepository = rulesRepository;
+        }
 
         /// <summary>
         /// Проверить текст страницы по заданному адресу и получить список слов с ошибками
         /// </summary>
         [HttpGet("errors")]
-        public IEnumerable<string> SpellErrors(
+        public IEnumerable<string> Errors(
             string page
         )
         {
@@ -32,7 +37,7 @@ namespace M13.InterviewProject.Controllers.Api
                 {
                     var document = new HtmlDocument();
                     document.LoadHtml(t.Result.Content.ReadAsStringAsync().Result);
-                    var xpath = Rules[site];
+                    var xpath = _rulesRepository.GetRuleBySite(site);
                     string innerText = "";
                     foreach (var node in document.DocumentNode.SelectNodes(xpath))
                     {
@@ -58,8 +63,8 @@ namespace M13.InterviewProject.Controllers.Api
         /// <summary>
         /// Проверить текст страницы по заданному адресу и получить количество слов с ошибками
         /// </summary>
-        [HttpGet("spell/errorscount")]
-        public int SpellErrorsCount(
+        [HttpGet("errorscount")]
+        public int Count(
             string page
         )
         {
@@ -70,7 +75,7 @@ namespace M13.InterviewProject.Controllers.Api
                 {
                     var document = new HtmlDocument();
                     document.LoadHtml(t.Result.Content.ReadAsStringAsync().Result);
-                    var xpath = Rules[site];
+                    var xpath = _rulesRepository.GetRuleBySite(site);
                     string innerText = "";
                     foreach (var node in document.DocumentNode.SelectNodes(xpath))
                     {
