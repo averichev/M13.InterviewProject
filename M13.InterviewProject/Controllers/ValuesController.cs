@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace M13.InterviewProject.Controllers
 {
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Models.Implementation;
     using Repository;
     using Services;
@@ -19,13 +22,19 @@ namespace M13.InterviewProject.Controllers
     [Route("api/rules")]
     public class ValuesController : Controller
     {
+        private readonly ILogger<ValuesController> _logger;
         private readonly IHttpClientFactory _clientFactory;
         private readonly IRulesRepository _rulesRepository;
 
-        public ValuesController(IHttpClientFactory clientFactory, IRulesRepository rulesRepository)
+        public ValuesController(
+            IHttpClientFactory clientFactory,
+            IRulesRepository rulesRepository,
+            ILogger<ValuesController> logger
+        )
         {
             _clientFactory = clientFactory;
             _rulesRepository = rulesRepository;
+            _logger = logger;
         }
 
         [HttpGet("add")]
@@ -52,31 +61,35 @@ namespace M13.InterviewProject.Controllers
         }
 
         [HttpGet("test")]
-        public string TestRules(string page, string rule = null)
+        public async Task<IActionResult> TestRules(string page, string rule = null)
         {
-            var site = new Uri("http://" + page).Host;
-
-            var text = _clientFactory.CreateClient().GetAsync("http://" + page)
-                .ContinueWith(t =>
-                {
-                    var document = new HtmlDocument();
-                    document.LoadHtml(t.Result.Content.ReadAsStringAsync().Result);
-                    string innerText = "";
-                    foreach (var node in document.DocumentNode.SelectNodes(rule ?? _rulesRepository.GetRuleBySite(site)))
-                    {
-                        innerText = innerText + "\r\n" + node.InnerText;
-                    }
-                    return innerText;
-                }).Result;
-            return text;
+            //var site = new Uri("http://" + page).Host;
+            var response = await _clientFactory.CreateClient().GetAsync("http://" + page);
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug(content);
+            var selector = _rulesRepository.GetRuleBySite(page);
+            var text = ReadHtml(content, selector);
+            return Ok(text);
         }
+
+        private static string ReadHtml(string html, string rule)
+        {
+            var document = new HtmlDocument();
+            document.LoadHtml(html);
+            var nodes = document.DocumentNode.SelectNodes(rule);
+            Func<string, HtmlNode, string> func = GetString;
+            var result = nodes.Aggregate("", func);
+            return result;
+        }
+
+        private static string GetString(string current, HtmlNode node) => current + "\r\n" + node.InnerText;
 
         [HttpGet("delete")]
         public IActionResult Delete(string site)
         {
             try
             {
-               _rulesRepository.DeleteRule(site);
+                _rulesRepository.DeleteRule(site);
             }
             catch
             {
