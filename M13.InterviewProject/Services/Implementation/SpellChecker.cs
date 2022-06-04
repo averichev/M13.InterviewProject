@@ -8,7 +8,7 @@ namespace M13.InterviewProject.Services.Implementation
     using Models.Implementation;
     using Newtonsoft.Json;
 
-    public class SpellChecker
+    public class SpellChecker : ISpellChecker
     {
         private const string YandexSpellCheckerUrl = "http://speller.yandex.net/services/spellservice.json/checkText?text=";
         public async Task<ISpellCheckError[]> GetErrors(string text)

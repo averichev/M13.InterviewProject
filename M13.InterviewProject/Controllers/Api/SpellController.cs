@@ -5,26 +5,21 @@ using Microsoft.AspNetCore.Mvc;
 namespace M13.InterviewProject.Controllers.Api
 {
     using System.Threading.Tasks;
-    using Repository;
     using Services;
-    using Services.Implementation;
 
     [Route("api/spell")]
     public class SpellController
     {
-        private readonly IRulesRepository _rulesRepository;
         private readonly IHtmlReader _htmlReader;
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly ISpellChecker _spellChecker;
 
         public SpellController(
-            IHttpClientFactory clientFactory,
-            IRulesRepository rulesRepository,
-            IHtmlReader htmlReader
+            IHtmlReader htmlReader,
+            ISpellChecker spellChecker
         )
         {
-            _clientFactory = clientFactory;
-            _rulesRepository = rulesRepository;
             _htmlReader = htmlReader;
+            _spellChecker = spellChecker;
         }
 
         /// <summary>
@@ -37,13 +32,9 @@ namespace M13.InterviewProject.Controllers.Api
 
             var textErrors = new List<string>(100);
 
-            new SpellChecker().GetErrors(text).ContinueWith(r =>
-            {
-                for (int i = 0; i < r.Result.Length; i++)
-                {
-                    textErrors.Add(r.Result[i].Word);
-                }
-            });
+            var errors = await _spellChecker.GetErrors(text);
+
+            textErrors.AddRange(errors.Select(error => error.Word));
 
             return textErrors;
         }
@@ -56,7 +47,8 @@ namespace M13.InterviewProject.Controllers.Api
         {
             var text = await _htmlReader.ReadPageAsync(page);
 
-            return new SpellChecker().GetErrors(text).Result.Count();
+            var errors = await _spellChecker.GetErrors(text);
+            return errors.Length;
         }
     }
 }
