@@ -1,6 +1,7 @@
 namespace M13.InterviewProject.Services.Implementation
 {
     using System;
+    using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
     using HtmlAgilityPack;
@@ -35,9 +36,17 @@ namespace M13.InterviewProject.Services.Implementation
 
         private async Task<string> GetPageContent(string page)
         {
-            var response = await _httpClientFactory.CreateClient().GetAsync("https://" + page);
-            var content = await response.Content.ReadAsStringAsync();
-            return content;
+            try
+            {
+                var response = await _httpClientFactory.CreateClient().GetAsync("https://" + page);
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            catch (Exception e)
+            {
+                throw new DataException(e.Message);
+            }
+
         }
 
         private static string ReadHtml(string html, string rule)
