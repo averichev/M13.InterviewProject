@@ -6,6 +6,7 @@ namespace M13.InterviewProject.Controllers.Api
 {
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Services;
 
     [Route("api/spell")]
@@ -13,14 +14,17 @@ namespace M13.InterviewProject.Controllers.Api
     {
         private readonly IHtmlReader _htmlReader;
         private readonly ISpellChecker _spellChecker;
+        private readonly ILogger<SpellController> _logger;
 
         public SpellController(
             IHtmlReader htmlReader,
-            ISpellChecker spellChecker
+            ISpellChecker spellChecker,
+            ILogger<SpellController> logger
         )
         {
             _htmlReader = htmlReader;
             _spellChecker = spellChecker;
+            _logger = logger;
         }
 
         /// <summary>
@@ -56,7 +60,7 @@ namespace M13.InterviewProject.Controllers.Api
             try
             {
                 var text = await _htmlReader.ReadPageAsync(page);
-
+                _logger.LogDebug(text);
                 var errors = await _spellChecker.GetErrors(text);
                 return Ok(errors.Length);
             }
