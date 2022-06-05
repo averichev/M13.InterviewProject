@@ -1,8 +1,11 @@
 namespace M13.InterviewProject.Controllers.Api
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Logging;
+    using Models.Form;
     using Models.Implementation;
     using Repository;
     using Services;
@@ -16,22 +19,34 @@ namespace M13.InterviewProject.Controllers.Api
     /// 5) view errors count in text: http://localhost:56660/api/spell/errorscount?page=yandex.ru
     /// </summary>
     [Route("api/rules")]
-    public class ValuesController : Controller
+    public class RulesController : Controller
     {
         private readonly IRulesRepository _rulesRepository;
         private readonly IHtmlReader _htmlReader;
+        private readonly ILogger<RulesController> _logger;
 
-        public ValuesController(IRulesRepository rulesRepository, IHtmlReader htmlReader)
+        public RulesController(
+            IRulesRepository rulesRepository,
+            IHtmlReader htmlReader,
+            ILogger<RulesController> logger
+        )
         {
             _rulesRepository = rulesRepository;
             _htmlReader = htmlReader;
+            _logger = logger;
         }
 
-        [HttpGet("add")]
-        public void AddRule(string site, string rule)
+        [HttpPost("add")]
+        public IActionResult AddRule([FromForm] AddRuleForm addRuleForm)
         {
-            var newRule = new Rule(site, rule);
+            if (!ModelState.IsValid)
+            {
+                return UnprocessableEntity(ModelState);
+            }
+            var newRule = new Rule(addRuleForm.Site, addRuleForm.Value);
+            _logger.LogDebug(addRuleForm.ToString());
             _rulesRepository.AddRule(newRule);
+            return Ok();
         }
 
         [HttpGet("get")]
