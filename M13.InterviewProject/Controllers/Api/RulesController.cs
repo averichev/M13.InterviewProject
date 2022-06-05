@@ -70,8 +70,8 @@ namespace M13.InterviewProject.Controllers.Api
             }
         }
 
-        [HttpGet("delete")]
-        public IActionResult Delete(string site)
+        [HttpDelete("delete")]
+        public IActionResult DeleteRule(string site)
         {
             try
             {
