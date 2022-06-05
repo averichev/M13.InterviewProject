@@ -9,14 +9,6 @@ namespace M13.InterviewProject.Controllers.Api
     using Repository;
     using Services;
 
-    /// <summary>
-    /// sample usage:
-    /// 1) check xpath rule '//ol' for site yandex.ru: http://localhost:56660/api/rules/add?site=yandex.ru&rule=%2f%2fol
-    /// 2) check rule is saved:  http://localhost:56660/api/rules/get?site=yandex.ru
-    /// 3) view text parsed by rule: http://localhost:56660/api/rules/test?page=yandex.ru
-    /// 4) view errors in text: http://localhost:56660/api/spell/errors?page=yandex.ru
-    /// 5) view errors count in text: http://localhost:56660/api/spell/errorscount?page=yandex.ru
-    /// </summary>
     [Route("api/rules")]
     public class RulesController : Controller
     {
